@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+database/restaurante.db
+database/restaurante.db-shm
+database/restaurante.db-wal
+database/impressoes/
+database/app.log
+database/servidor.log
+database/servidor_erro.log
+.DS_Store

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurante PDV</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=3">
+</head>
+<body>
+    <div id="toast-container" class="toast-container"></div>
+    <div id="modal-container"></div>
+
+    <div class="app-layout">
+        <nav class="sidebar">
+            <div class="sidebar-header"><h1>Restaurante PDV</h1><div class="subtitle">Sistema de Pedidos</div></div>
+            <div class="sidebar-nav">
+                <div class="sidebar-section">Operacao</div>
+                <a href="#" data-pagina="novo-pedido" class="active"><span class="icon">+</span><span>Novo Pedido</span></a>
+                <a href="#" data-pagina="pedidos-dia"><span class="icon">&#9776;</span><span>Pedidos do Dia</span></a>
+
+                <!-- Menu admin: escondido ate fazer login -->
+                <div id="menu-admin" style="display:none">
+                    <div class="sidebar-section">Cadastros</div>
+                    <a href="#" data-pagina="cadastro-categorias"><span class="icon">&#9733;</span><span>Categorias</span></a>
+                    <a href="#" data-pagina="cadastro-produtos"><span class="icon">&#9832;</span><span>Produtos</span></a>
+                    <a href="#" data-pagina="cadastro-acompanhamentos"><span class="icon">&#9831;</span><span>Acompanhamentos</span></a>
+                    <a href="#" data-pagina="cadastro-bebidas"><span class="icon">&#9834;</span><span>Bebidas</span></a>
+                    <a href="#" data-pagina="cadastro-sobremesas"><span class="icon">&#9827;</span><span>Sobremesas</span></a>
+                    <a href="#" data-pagina="cadastro-extras"><span class="icon">&#9829;</span><span>Extras</span></a>
+                    <a href="#" data-pagina="regras-combo"><span class="icon">&#9830;</span><span>Regras de Combo</span></a>
+                    <div class="sidebar-section">Sistema</div>
+                    <a href="#" data-pagina="impressoras"><span class="icon">&#9113;</span><span>Impressoras</span></a>
+                    <a href="#" onclick="event.preventDefault(); logoutAdmin();" style="border-top:1px solid rgba(255,255,255,0.1)"><span class="icon">&#10005;</span><span>Sair Admin</span></a>
+                </div>
+
+                <!-- Botao login: visivel quando nao esta logado -->
+                <div id="menu-login" style="margin-top:16px">
+                    <a href="#" onclick="event.preventDefault(); mostrarLoginAdmin();" style="border-top:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05)"><span class="icon">&#9919;</span><span>Login Admin</span></a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="main-content">
+
+            <!-- NOVO PEDIDO -->
+            <div id="pagina-novo-pedido" class="pagina" style="display:flex;flex:1;overflow:hidden">
+                <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+                    <div class="page-header"><h2>Novo Pedido</h2><button class="btn btn-outline btn-sm" onclick="novoPedido()">Limpar Pedido</button></div>
+                    <div class="page-body" id="area-montagem"></div>
+                </div>
+                <div class="pedido-panel">
+                    <div class="pedido-header"><h3>Pedido</h3><span class="badge badge-info" id="carrinho-count">0</span></div>
+                    <div class="pedido-itens" id="carrinho-itens"><p style="text-align:center;color:var(--text-light);padding:40px 20px">Nenhum item no pedido</p></div>
+                    <div class="pedido-footer">
+                        <div class="pedido-total"><span>Total</span><span class="valor" id="carrinho-total">R$ 0,00</span></div>
+                        <button class="btn btn-success btn-lg btn-block" id="btn-fechar-pedido" onclick="fecharPedido()" disabled style="opacity:0.5">Fechar Pedido</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PEDIDOS DO DIA -->
+            <div id="pagina-pedidos-dia" class="pagina hidden">
+                <div class="page-header"><h2>Pedidos do Dia</h2><button class="btn btn-outline btn-sm" onclick="carregarPedidosDia()">Atualizar</button></div>
+                <div class="page-body" id="lista-pedidos-dia"></div>
+            </div>
+
+            <!-- CATEGORIAS -->
+            <div id="pagina-cadastro-categorias" class="pagina hidden">
+                <div class="page-header"><h2>Cadastro de Categorias</h2></div>
+                <div class="page-body">
+                    <div style="background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:var(--shadow)">
+                        <input type="hidden" id="cat-id">
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+                            <div class="form-group"><label>Nome</label><input type="text" class="form-control" id="cat-nome" placeholder="Nome da categoria"></div>
+                            <div class="form-group"><label>Ordem</label><input type="number" class="form-control" id="cat-ordem" value="0"></div>
+                            <div class="form-group"><label>Qtd Acompanhamentos</label><input type="number" class="form-control" id="cat-qtd-acomp" value="0" min="0" placeholder="0 = nenhum"></div>
+                            <div class="form-group"><label>Label do acompanhamento</label><input type="text" class="form-control" id="cat-acomp-label" value="Escolha o acompanhamento" placeholder="Texto que aparece na tela"></div>
+                            <div class="form-group"><label>Acompanhamento fixo (informativo)</label><input type="text" class="form-control" id="cat-acomp-fixo" placeholder="Ex: Arroz + Feijao + Fritas + Salada"></div>
+                            <div class="form-group"><label>Preco bebida especial (R$)</label><input type="number" class="form-control" id="cat-bebida-especial" value="0" step="0.01" min="0" placeholder="0 = normal"></div>
+                        </div>
+                        <div class="form-group"><label>Extras disponiveis nesta categoria</label><div id="cat-extras" style="display:flex;flex-wrap:wrap;gap:8px"></div></div>
+                        <div style="display:flex;gap:12px"><button class="btn btn-primary" onclick="salvarCategoria()">Salvar</button><button class="btn btn-outline" onclick="limparFormCategoria()">Limpar</button></div>
+                    </div>
+                    <div id="lista-categorias"></div>
+                </div>
+            </div>
+
+            <!-- PRODUTOS -->
+            <div id="pagina-cadastro-produtos" class="pagina hidden">
+                <div class="page-header"><h2>Cadastro de Produtos</h2></div>
+                <div class="page-body">
+                    <div style="background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:var(--shadow)">
+                        <input type="hidden" id="prod-id">
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+                            <div class="form-group"><label>Categoria</label><select class="form-control" id="prod-categoria"></select></div>
+                            <div class="form-group"><label>Nome</label><input type="text" class="form-control" id="prod-nome" placeholder="Nome do produto"></div>
+                            <div class="form-group"><label>Descricao</label><input type="text" class="form-control" id="prod-descricao" placeholder="Descricao curta"></div>
+                            <div class="form-group"><label>Preco (R$)</label><input type="number" class="form-control" id="prod-preco" step="0.01" placeholder="0.00"></div>
+                            <div class="form-group"><label>Ordem</label><input type="number" class="form-control" id="prod-ordem" value="0"></div>
+                            <div class="form-group"><label>Regra de Combo</label><select class="form-control" id="prod-regra-combo"></select></div>
+                        </div>
+                        <div class="form-check mb-12"><input type="checkbox" id="prod-tem-combo" checked><label for="prod-tem-combo">Participa de combo</label></div>
+                        <div class="form-group"><label>Acompanhamentos disponiveis</label><div id="prod-acompanhamentos" style="display:flex;flex-wrap:wrap;gap:8px"></div></div>
+                        <div style="display:flex;gap:12px"><button class="btn btn-primary" onclick="salvarProduto()">Salvar</button><button class="btn btn-outline" onclick="limparFormProduto()">Limpar</button></div>
+                    </div>
+                    <div id="lista-produtos"></div>
+                </div>
+            </div>
+
+            <!-- ACOMPANHAMENTOS -->
+            <div id="pagina-cadastro-acompanhamentos" class="pagina hidden">
+                <div class="page-header"><h2>Cadastro de Acompanhamentos</h2></div>
+                <div class="page-body">
+                    <div style="background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:var(--shadow)">
+                        <input type="hidden" id="acomp-id">
+                        <div style="display:flex;gap:12px;align-items:end"><div class="form-group" style="flex:1;margin-bottom:0"><label>Nome</label><input type="text" class="form-control" id="acomp-nome" placeholder="Ex: Pure, Batata Frita, Legumes..."></div><button class="btn btn-primary" onclick="salvarAcompanhamento()">Salvar</button></div>
+                    </div>
+                    <div id="lista-acompanhamentos"></div>
+                </div>
+            </div>
+
+            <!-- BEBIDAS -->
+            <div id="pagina-cadastro-bebidas" class="pagina hidden">
+                <div class="page-header"><h2>Cadastro de Bebidas</h2></div>
+                <div class="page-body">
+                    <div style="background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:var(--shadow)">
+                        <input type="hidden" id="beb-id">
+                        <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
+                            <div class="form-group" style="flex:2;margin-bottom:0;min-width:200px"><label>Nome</label><input type="text" class="form-control" id="beb-nome" placeholder="Ex: Pepsi, Agua..."></div>
+                            <div class="form-group" style="flex:1;margin-bottom:0;min-width:120px"><label>Preco (R$)</label><input type="number" class="form-control" id="beb-preco" step="0.01" placeholder="0.00"></div>
+                            <div class="form-group" style="flex:1;margin-bottom:0;min-width:80px"><label>Ordem</label><input type="number" class="form-control" id="beb-ordem" value="0"></div>
+                            <div class="form-check" style="margin-bottom:0;padding-bottom:4px"><input type="checkbox" id="beb-combo"><label for="beb-combo">Combo (+10,90)</label></div>
+                            <div class="form-check" style="margin-bottom:0;padding-bottom:4px"><input type="checkbox" id="beb-especial"><label for="beb-especial">Promo Especial (R$3)</label></div>
+                            <button class="btn btn-primary" onclick="salvarBebida()">Salvar</button>
+                        </div>
+                    </div>
+                    <div id="lista-bebidas"></div>
+                </div>
+            </div>
+
+            <!-- SOBREMESAS -->
+            <div id="pagina-cadastro-sobremesas" class="pagina hidden">
+                <div class="page-header"><h2>Cadastro de Sobremesas</h2></div>
+                <div class="page-body">
+                    <div style="background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:var(--shadow)">
+                        <input type="hidden" id="sob-id">
+                        <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
+                            <div class="form-group" style="flex:2;margin-bottom:0;min-width:200px"><label>Nome</label><input type="text" class="form-control" id="sob-nome" placeholder="Ex: Brigadeirao, Torta Holandesa..."></div>
+                            <div class="form-group" style="flex:1;margin-bottom:0;min-width:120px"><label>Preco (R$)</label><input type="number" class="form-control" id="sob-preco" step="0.01" placeholder="0.00"></div>
+                            <div class="form-group" style="flex:1;margin-bottom:0;min-width:80px"><label>Ordem</label><input type="number" class="form-control" id="sob-ordem" value="0"></div>
+                            <div class="form-check" style="margin-bottom:0;padding-bottom:4px"><input type="checkbox" id="sob-combo"><label for="sob-combo">Participa do Combo</label></div>
+                            <button class="btn btn-primary" onclick="salvarSobremesa()">Salvar</button>
+                        </div>
+                    </div>
+                    <div id="lista-sobremesas"></div>
+                </div>
+            </div>
+
+            <!-- EXTRAS -->
+            <div id="pagina-cadastro-extras" class="pagina hidden">
+                <div class="page-header"><h2>Cadastro de Extras</h2></div>
+                <div class="page-body">
+                    <div style="background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:var(--shadow)">
+                        <input type="hidden" id="ext-id">
+                        <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
+                            <div class="form-group" style="flex:2;margin-bottom:0;min-width:200px"><label>Nome</label><input type="text" class="form-control" id="ext-nome" placeholder="Ex: Caldo, Saladinha, Acomp Extra..."></div>
+                            <div class="form-group" style="flex:1;margin-bottom:0;min-width:120px"><label>Preco (R$)</label><input type="number" class="form-control" id="ext-preco" step="0.01" placeholder="0.00"></div>
+                            <div class="form-group" style="flex:1;margin-bottom:0;min-width:80px"><label>Ordem</label><input type="number" class="form-control" id="ext-ordem" value="0"></div>
+                            <button class="btn btn-primary" onclick="salvarExtra()">Salvar</button>
+                        </div>
+                    </div>
+                    <div id="lista-extras"></div>
+                </div>
+            </div>
+
+            <!-- REGRAS DE COMBO -->
+            <div id="pagina-regras-combo" class="pagina hidden">
+                <div class="page-header"><h2>Regras de Combo</h2></div>
+                <div class="page-body">
+                    <div style="background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:var(--shadow)">
+                        <input type="hidden" id="regra-id">
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+                            <div class="form-group"><label>Nome da Regra</label><input type="text" class="form-control" id="regra-nome" placeholder="Ex: Combo Completo"></div>
+                            <div class="form-group"><label>Descricao</label><input type="text" class="form-control" id="regra-descricao" placeholder="Descricao da regra"></div>
+                            <div class="form-group"><label>Valor adicional (R$)</label><input type="number" class="form-control" id="regra-valor" value="10.90" step="0.01"></div>
+                        </div>
+                        <div style="display:flex;gap:24px;margin-bottom:16px">
+                            <div class="form-check"><input type="checkbox" id="regra-exige-bebida" checked><label for="regra-exige-bebida">Exige Bebida</label></div>
+                            <div class="form-check"><input type="checkbox" id="regra-exige-sobremesa" checked><label for="regra-exige-sobremesa">Exige Sobremesa</label></div>
+                        </div>
+                        <div class="form-group"><label>Produtos vinculados</label><div id="regra-produtos" style="display:flex;flex-wrap:wrap;gap:8px;max-height:200px;overflow-y:auto"></div></div>
+                        <div style="display:flex;gap:12px"><button class="btn btn-primary" onclick="salvarRegraCombo()">Salvar</button><button class="btn btn-outline" onclick="limparFormRegraCombo()">Limpar</button></div>
+                    </div>
+                    <div id="lista-regras-combo"></div>
+                </div>
+            </div>
+
+            <!-- IMPRESSORAS -->
+            <div id="pagina-impressoras" class="pagina hidden">
+                <div class="page-header"><h2>Configuracao de Impressoras</h2></div>
+                <div class="page-body">
+                    <div style="background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:var(--shadow)">
+                        <h4 style="margin-bottom:16px">Configuracoes Gerais</h4>
+                        <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
+                            <div class="form-group" style="flex:2;margin-bottom:0;min-width:200px"><label>Nome do Restaurante</label><input type="text" class="form-control" id="cfg-nome-restaurante"></div>
+                            <div class="form-check" style="margin-bottom:0;padding-bottom:4px"><input type="checkbox" id="cfg-simulacao" checked><label for="cfg-simulacao">Modo simulacao</label></div>
+                            <button class="btn btn-primary" onclick="salvarConfiguracoes()">Salvar Config</button>
+                        </div>
+                    </div>
+                    <div style="background:var(--bg-card);border-radius:var(--radius);padding:20px;margin-bottom:20px;box-shadow:var(--shadow)">
+                        <h4 style="margin-bottom:16px">Cadastrar Impressora</h4>
+                        <input type="hidden" id="imp-id">
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+                            <div class="form-group"><label>Nome</label><input type="text" class="form-control" id="imp-nome"></div>
+                            <div class="form-group"><label>Tipo</label><select class="form-control" id="imp-tipo"><option value="caixa">Caixa</option><option value="cozinha">Cozinha</option></select></div>
+                            <div class="form-group"><label>Conexao</label><select class="form-control" id="imp-conexao"><option value="usb">USB</option><option value="rede">Rede</option></select></div>
+                            <div class="form-group"><label>IP (rede)</label><input type="text" class="form-control" id="imp-endereco" placeholder="192.168.1.100"></div>
+                            <div class="form-group"><label>Porta</label><input type="number" class="form-control" id="imp-porta" value="9100"></div>
+                            <div class="form-group"><label>Vendor ID (USB)</label><input type="text" class="form-control" id="imp-vendor" placeholder="0x0483"></div>
+                            <div class="form-group"><label>Product ID (USB)</label><input type="text" class="form-control" id="imp-product" placeholder="0x5743"></div>
+                        </div>
+                        <div style="display:flex;gap:12px"><button class="btn btn-primary" onclick="salvarImpressora()">Salvar</button><button class="btn btn-outline" onclick="limparFormImpressora()">Limpar</button></div>
+                    </div>
+                    <h4 style="margin-bottom:12px">Impressoras Cadastradas</h4>
+                    <div id="lista-impressoras"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Painel de Logs (visivel em telas admin) -->
+    <div id="painel-logs" style="display:none;position:fixed;bottom:0;left:230px;right:0;background:#fff;border-top:2px solid var(--border);box-shadow:0 -4px 16px rgba(0,0,0,0.1);z-index:50">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:#f9f9f9;border-bottom:1px solid var(--border)">
+            <strong style="font-size:14px">Log de Alteracoes</strong>
+            <button class="btn btn-sm btn-outline" onclick="toggleLogs()">Fechar</button>
+        </div>
+        <div id="area-logs" style="padding:8px 20px"></div>
+    </div>
+
+    <script src="/static/js/api.js?v=9"></script>
+    <script src="/static/js/app.js?v=9"></script>
+</body>
+</html>
