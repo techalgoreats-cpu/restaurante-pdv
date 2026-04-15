@@ -184,13 +184,93 @@ async function mostrarEtapaCategorias() {
         <div id="grid-categorias" class="grid-cards grid-cards-4" style="gap:16px;max-width:1000px;margin:0 auto"></div>`;
     try {
         const categorias = await API.categorias.listar();
-        document.getElementById('grid-categorias').innerHTML = categorias.map((c, i) => `
+        let html = categorias.map((c, i) => `
             <div class="card-categoria cat-cor-${i % 10}" onclick="selecionarCategoria(${c.id})">
                 <div class="card-nome">${c.nome}</div>
                 ${c.acompanhamento_fixo ? `<div class="card-subtitulo">${c.acompanhamento_fixo}</div>` : ''}
             </div>
         `).join('');
+        // Adicionar Bebidas e Sobremesas como categorias avulsas
+        const corBebidas = categorias.length % 10;
+        const corSobremesas = (categorias.length + 1) % 10;
+        html += `
+            <div class="card-categoria cat-cor-${corBebidas}" onclick="mostrarBebidasAvulsas()">
+                <div class="card-nome">Bebidas</div>
+                <div class="card-subtitulo">Avulso</div>
+            </div>
+            <div class="card-categoria cat-cor-${corSobremesas}" onclick="mostrarSobremesasAvulsas()">
+                <div class="card-nome">Sobremesas</div>
+                <div class="card-subtitulo">Avulso</div>
+            </div>
+        `;
+        document.getElementById('grid-categorias').innerHTML = html;
     } catch (e) { toast('Erro ao carregar categorias', 'erro'); }
+}
+
+// Bebidas avulsas - adiciona direto ao carrinho
+async function mostrarBebidasAvulsas() {
+    const area = document.getElementById('area-montagem');
+    area.innerHTML = `
+        <div class="flex-between mb-20">
+            <h3 style="font-size:22px;color:var(--primary)">Bebidas</h3>
+            <button class="btn btn-outline btn-sm" onclick="mostrarEtapaCategorias()">Voltar</button>
+        </div>
+        <div id="grid-bebidas-avulsas" class="grid-cards grid-cards-4" style="gap:12px;max-width:900px;margin:0 auto"></div>`;
+    try {
+        const bebidas = await API.bebidas.listar(false);
+        document.getElementById('grid-bebidas-avulsas').innerHTML = bebidas.map(b => `
+            <div class="card-selecao" onclick="adicionarBebidaAvulsa(${b.id}, '${b.nome.replace(/'/g, "\\'")}', ${b.preco})">
+                <div class="card-nome">${b.nome}</div>
+                <div class="card-preco">${formatarPreco(b.preco)}</div>
+            </div>
+        `).join('');
+    } catch (e) { toast('Erro ao carregar bebidas', 'erro'); }
+}
+
+function adicionarBebidaAvulsa(id, nome, preco) {
+    pedidoAtual.itens.push({
+        produto_nome: nome, produto_preco: preco,
+        acompanhamentos_txt: '', bebida_nome: '', bebida_preco: 0, bebida_especial: 0,
+        sobremesa_nome: '', sobremesa_preco: 0, extras_txt: '', extras_preco: 0,
+        combo_aplicado: 0, valor_combo: 0, subtotal: preco, observacao: '',
+        _dados: { produto_id: null, acompanhamento_ids: [], bebida_id: id, sobremesa_id: null, extra_ids: [], observacao: '', avulso: 'bebida' }
+    });
+    atualizarCarrinho();
+    toast(`${nome} adicionado!`);
+    mostrarEtapaCategorias();
+}
+
+// Sobremesas avulsas
+async function mostrarSobremesasAvulsas() {
+    const area = document.getElementById('area-montagem');
+    area.innerHTML = `
+        <div class="flex-between mb-20">
+            <h3 style="font-size:22px;color:var(--primary)">Sobremesas</h3>
+            <button class="btn btn-outline btn-sm" onclick="mostrarEtapaCategorias()">Voltar</button>
+        </div>
+        <div id="grid-sobremesas-avulsas" class="grid-cards grid-cards-4" style="gap:12px;max-width:900px;margin:0 auto"></div>`;
+    try {
+        const sobremesas = await API.sobremesas.listar(false);
+        document.getElementById('grid-sobremesas-avulsas').innerHTML = sobremesas.map(s => `
+            <div class="card-selecao" onclick="adicionarSobremesaAvulsa(${s.id}, '${s.nome.replace(/'/g, "\\'")}', ${s.preco})">
+                <div class="card-nome">${s.nome}</div>
+                <div class="card-preco">${formatarPreco(s.preco)}</div>
+            </div>
+        `).join('');
+    } catch (e) { toast('Erro ao carregar sobremesas', 'erro'); }
+}
+
+function adicionarSobremesaAvulsa(id, nome, preco) {
+    pedidoAtual.itens.push({
+        produto_nome: nome, produto_preco: preco,
+        acompanhamentos_txt: '', bebida_nome: '', bebida_preco: 0, bebida_especial: 0,
+        sobremesa_nome: '', sobremesa_preco: 0, extras_txt: '', extras_preco: 0,
+        combo_aplicado: 0, valor_combo: 0, subtotal: preco, observacao: '',
+        _dados: { produto_id: null, acompanhamento_ids: [], bebida_id: null, sobremesa_id: id, extra_ids: [], observacao: '', avulso: 'sobremesa' }
+    });
+    atualizarCarrinho();
+    toast(`${nome} adicionado!`);
+    mostrarEtapaCategorias();
 }
 
 // ============================================

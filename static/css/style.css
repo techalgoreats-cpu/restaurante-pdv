@@ -127,10 +127,14 @@ body {
 }
 
 .pagina {
-    display: flex;
-    flex-direction: column;
     flex: 1;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+#pagina-novo-pedido {
+    flex-direction: row;
 }
 
 .page-header {

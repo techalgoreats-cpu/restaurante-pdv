@@ -15,6 +15,32 @@ bp = Blueprint('pedidos', __name__)
 
 def _calcular_item(item_data):
     """Calcula o subtotal de um item do pedido, aplicando combo se elegível."""
+
+    # Item avulso (bebida ou sobremesa direto)
+    if item_data.get('avulso') == 'bebida' and item_data.get('bebida_id'):
+        bebida = query_db("SELECT * FROM bebidas WHERE id=?", [item_data['bebida_id']], one=True)
+        if not bebida:
+            return None
+        return {
+            'produto_id': None, 'produto_nome': bebida['nome'], 'produto_preco': bebida['preco'],
+            'acompanhamentos_txt': '', 'bebida_id': bebida['id'], 'bebida_nome': '', 'bebida_preco': 0, 'bebida_especial': 0,
+            'sobremesa_id': None, 'sobremesa_nome': '', 'sobremesa_preco': 0,
+            'extras_txt': '', 'extras_preco': 0, 'combo_aplicado': 0, 'valor_combo': 0,
+            'preco_combo_total': 0, 'subtotal': round(bebida['preco'], 2), 'observacao': item_data.get('observacao', '')
+        }
+
+    if item_data.get('avulso') == 'sobremesa' and item_data.get('sobremesa_id'):
+        sobremesa = query_db("SELECT * FROM sobremesas WHERE id=?", [item_data['sobremesa_id']], one=True)
+        if not sobremesa:
+            return None
+        return {
+            'produto_id': None, 'produto_nome': sobremesa['nome'], 'produto_preco': sobremesa['preco'],
+            'acompanhamentos_txt': '', 'bebida_id': None, 'bebida_nome': '', 'bebida_preco': 0, 'bebida_especial': 0,
+            'sobremesa_id': sobremesa['id'], 'sobremesa_nome': '', 'sobremesa_preco': 0,
+            'extras_txt': '', 'extras_preco': 0, 'combo_aplicado': 0, 'valor_combo': 0,
+            'preco_combo_total': 0, 'subtotal': round(sobremesa['preco'], 2), 'observacao': item_data.get('observacao', '')
+        }
+
     produto = query_db(
         "SELECT p.*, c.preco_bebida_especial FROM produtos p JOIN categorias c ON p.categoria_id=c.id WHERE p.id=?",
         [item_data['produto_id']], one=True)
