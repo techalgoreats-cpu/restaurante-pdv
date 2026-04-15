@@ -126,6 +126,13 @@ body {
     overflow: hidden;
 }
 
+.pagina {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
 .page-header {
     padding: 16px 28px;
     background: var(--bg-card);
@@ -747,6 +754,7 @@ table tr:hover {
 .gap-8 { gap: 8px; }
 .gap-12 { gap: 12px; }
 .hidden { display: none !important; }
+.pagina.hidden { display: none !important; }
 
 /* Tela de sucesso do pedido */
 .sucesso-pedido {
