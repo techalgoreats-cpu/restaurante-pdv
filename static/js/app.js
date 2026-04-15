@@ -767,7 +767,19 @@ async function carregarPedidosDia() {
     try {
         const pedidos = await API.pedidos.listar();
         if (pedidos.length === 0) { container.innerHTML = '<p class="text-center" style="padding:40px;color:var(--text-light)">Nenhum pedido hoje</p>'; return; }
-        container.innerHTML = `<div class="table-container"><table>
+        const totalDia = pedidos.reduce((s, p) => s + p.total, 0);
+        container.innerHTML = `
+        <div style="display:flex;gap:16px;margin-bottom:20px">
+            <div style="background:var(--bg-card);border-radius:12px;padding:20px 28px;box-shadow:var(--shadow);flex:1;text-align:center">
+                <div style="font-size:14px;color:var(--text-light);font-weight:600">Pedidos</div>
+                <div style="font-size:32px;font-weight:800;color:var(--text)">${pedidos.length}</div>
+            </div>
+            <div style="background:var(--bg-card);border-radius:12px;padding:20px 28px;box-shadow:var(--shadow);flex:2;text-align:center">
+                <div style="font-size:14px;color:var(--text-light);font-weight:600">Total do Dia</div>
+                <div style="font-size:32px;font-weight:800;color:var(--success)">${formatarPreco(totalDia)}</div>
+            </div>
+        </div>
+        <div class="table-container"><table>
             <thead><tr><th>#</th><th>Pager</th><th>Hora</th><th>Total</th><th>Status</th><th>Impresso</th><th>Acoes</th></tr></thead>
             <tbody>${pedidos.map(p => `<tr>
                 <td><strong>${String(p.numero).padStart(3, '0')}</strong></td>
